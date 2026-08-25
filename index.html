@@ -1,1 +1,1169 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UGCloud Auto System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Calistoga&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <style>
+        :root {
+            --bg-base: #FAFAFA;
+            --fg: #0F172A;
+            --muted: #F1F5F9;
+            --muted-fg: #64748B;
+            --accent: #0052FF;
+            --accent-sec: #4D7CFF;
+            --border: #E2E8F0;
+            --card: #FFFFFF;
+            --inverted-bg: #0F172A;
+            --inverted-fg: #FAFAFA;
+            --header-bg: rgba(250, 250, 250, 0.85);
+            --header-scrolled-bg: rgba(255, 255, 255, 0.98);
+            
+            --font-heading: 'Calistoga', Georgia, serif;
+            --font-body: 'Inter', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+            --shadow-accent: 0 4px 14px rgba(0,82,255,0.25);
+            --shadow-accent-lg: 0 8px 24px rgba(0,82,255,0.35);
+        }
+
+        [data-theme="dark"] {
+            --bg-base: #060608;
+            --fg: #EDEEF2;
+            --muted: #0c0c10;
+            --muted-fg: #7a7f8e;
+            --border: rgba(255,255,255,0.06);
+            --card: #0a0a0d;
+            --inverted-bg: #0a0a0d;
+            --inverted-fg: #EDEEF2;
+            --header-bg: rgba(6, 6, 8, 0.85);
+            --header-scrolled-bg: rgba(10, 10, 13, 0.98);
+            
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+            --shadow-xl: 0 20px 25px rgba(0,0,0,0.6);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-base);
+            color: var(--fg);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── AMBIENT BACKGROUND (Đã tối ưu giảm lag) ── */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background-color: var(--bg-base);
+            pointer-events: none;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: radial-gradient(circle at 0% 0%, rgba(0,82,255,0.04) 0%, transparent 50%),
+                              radial-gradient(circle at 100% 100%, rgba(77,124,255,0.04) 0%, transparent 50%);
+        }
+
+        /* ── HEADER ── */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: 72px; padding: 0 6%;
+            display: flex; align-items: center;
+            background: var(--header-bg);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+        header.scrolled {
+            background: var(--header-scrolled-bg);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .nav { max-width: 1152px; width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-sec));
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; box-shadow: var(--shadow-accent);
+        }
+        .logo-text { font-family: var(--font-heading); font-size: 20px; color: var(--fg); line-height: 1; }
+        .logo-sub { font-family: var(--font-body); font-size: 14px; color: var(--muted-fg); }
+        .theme-toggle { background: transparent; border: none; font-size: 20px; color: var(--muted-fg); cursor: pointer; transition: color 0.3s; padding: 8px; }
+        .theme-toggle:hover { color: var(--accent); }
+        .nav-links { display: flex; list-style: none; gap: 8px; }
+        .nav-links a {
+            display: block; padding: 8px 16px; border-radius: 99px;
+            font-size: 14px; font-weight: 500; color: var(--muted-fg); text-decoration: none;
+            transition: all 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--fg); background: var(--muted); }
+        .nav-cta {
+            padding: 10px 20px; background: var(--accent); color: #fff;
+            font-size: 14px; font-weight: 500; border-radius: 12px; text-decoration: none;
+            transition: all 0.2s; box-shadow: var(--shadow-accent);
+        }
+        .nav-cta:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: var(--shadow-accent-lg); }
+
+        /* ── TYPOGRAPHY & COMPONENTS ── */
+        .gradient-text {
+            background: linear-gradient(to right, var(--accent), var(--accent-sec));
+            -webkit-background-clip: text; color: transparent;
+        }
+        .section-badge {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 6px 16px; border-radius: 99px;
+            background: rgba(0,82,255,0.06); border: 1px solid rgba(0,82,255,0.15);
+            font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+            color: var(--accent); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 24px;
+        }
+        .section-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2.5s infinite; }
+        
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            height: 52px; padding: 0 28px; border-radius: 12px;
+            font-size: 15px; font-weight: 500; cursor: pointer; border: none; text-decoration: none;
+            transition: all 0.2s ease-out;
+        }
+        .btn-primary {
+            background: linear-gradient(to right, var(--accent), var(--accent-sec));
+            color: #fff; box-shadow: var(--shadow-sm);
+        }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-accent-lg); filter: brightness(1.05); }
+        .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(0.5); }
+        .btn-ghost { background: transparent; color: var(--fg); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--muted); border-color: rgba(0,82,255,0.3); transform: translateY(-2px); }
+
+        /* ── HERO ── */
+        .hero { min-height: 100vh; display: flex; align-items: center; padding: 120px 6% 80px; position: relative; z-index: 10; }
+        .hero-inner {
+            max-width: 1152px; width: 100%; margin: 0 auto;
+            display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center;
+        }
+        .hero h1 { font-family: var(--font-heading); font-size: clamp(3rem, 5vw, 5.25rem); line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 24px; color: var(--fg); }
+        .hero p { font-size: 18px; color: var(--muted-fg); line-height: 1.6; margin-bottom: 40px; max-width: 480px; }
+        .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 56px; }
+        .hero-stats { display: flex; gap: 48px; padding-top: 32px; border-top: 1px solid var(--border); }
+        .stat-val { font-family: var(--font-heading); font-size: 32px; color: var(--fg); line-height: 1.2; }
+        .stat-label { font-family: var(--font-mono); font-size: 12px; color: var(--muted-fg); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Phone mockup optimized */
+        .phone-wrap { display: flex; justify-content: center; }
+        .phone {
+            width: 260px; height: 540px; background: var(--card);
+            border-radius: 40px; border: 8px solid var(--muted);
+            box-shadow: var(--shadow-xl); position: relative; overflow: hidden;
+            animation: float 6s ease-in-out infinite;
+        }
+        .phone-notch {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 110px; height: 24px; background: var(--muted);
+            border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; z-index: 2;
+        }
+        .phone-screen {
+            padding: 40px 24px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+            background: radial-gradient(circle at 50% 30%, rgba(0,82,255,0.05) 0%, transparent 70%);
+        }
+        .phone-icon {
+            width: 72px; height: 72px; border-radius: 20px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-sec));
+            color: #fff; font-size: 32px; display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow-accent);
+        }
+        .phone-code { font-family: var(--font-mono); font-size: 13px; color: var(--muted-fg); text-align: center; line-height: 2; }
+        .phone-code span { color: var(--accent); font-weight: 600; }
+        .phone-ring { width: 40px; height: 40px; border-radius: 50%; border: 3px solid rgba(0,82,255,0.2); border-top-color: var(--accent); animation: spin 1s linear infinite; }
+
+        /* ── SECTION ── */
+        .section { padding: 100px 6%; position: relative; z-index: 10; }
+        .section::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 24px 24px; opacity: 0.5; pointer-events: none; z-index: -1;
+        }
+        .section-center { max-width: 800px; margin: 0 auto; }
+        .section-title { font-family: var(--font-heading); font-size: clamp(2rem, 4vw, 3.25rem); color: var(--fg); margin-bottom: 16px; line-height: 1.1; }
+        .section-desc { font-size: 18px; color: var(--muted-fg); margin-bottom: 48px; line-height: 1.6; }
+        
+        /* ── CARDS & EDITOR ── */
+        .card {
+            background: var(--card); border-radius: 24px; border: 1px solid var(--border);
+            box-shadow: var(--shadow-md); transition: all 0.3s ease;
+        }
+        .card:hover { box-shadow: var(--shadow-xl); border-color: rgba(0,82,255,0.2); }
+        .card-body { padding: 48px; }
+
+        .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px; }
+        .step { background: var(--muted); padding: 24px; border-radius: 16px; }
+        .step-num {
+            width: 32px; height: 32px; border-radius: 50%; background: var(--card); color: var(--accent);
+            display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 14px;
+            margin-bottom: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+        }
+        .step-text small { display: block; font-size: 12px; color: var(--muted-fg); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .step-text strong { font-size: 15px; color: var(--fg); font-weight: 600; line-height: 1.4; }
+
+        .format-hint { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        .format-badge {
+            display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 99px;
+            font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+            background: var(--muted); color: var(--muted-fg); border: 1px solid var(--border);
+        }
+        .format-badge i { color: var(--accent); }
+
+        .editor {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+            overflow: hidden; margin-bottom: 32px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s;
+        }
+        .editor:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,82,255,0.1); }
+        .editor-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 20px; background: var(--muted); border-bottom: 1px solid var(--border);
+        }
+        .editor-title { font-family: var(--font-mono); font-size: 13px; color: var(--muted-fg); display: flex; align-items: center; gap: 8px; }
+        .editor-title i { color: var(--accent); }
+        .editor-dots { display: flex; gap: 6px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-r{background:#FF5F57} .dot-y{background:#FFBD2E} .dot-g{background:#28CA41}
+        textarea.editor-ta {
+            width: 100%; height: 220px; background: transparent; border: none; outline: none;
+            padding: 24px; font-family: var(--font-mono); font-size: 14px; color: var(--fg); line-height: 1.7; resize: none;
+        }
+        /* ── CUSTOM SELECT ── */
+        .custom-select-wrapper { margin-bottom: 24px; }
+        .custom-select-label { display: block; font-size: 13px; font-weight: 600; color: var(--muted-fg); margin-bottom: 10px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+        .custom-select-label i { color: var(--accent); margin-right: 6px; }
+        .custom-select { position: relative; width: 100%; user-select: none; }
+        .custom-select-trigger {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; height: 52px; background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; font-size: 15px; color: var(--fg); cursor: pointer; transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+        .custom-select-trigger:hover { border-color: var(--accent); }
+        .custom-select.open .custom-select-trigger { border-color: var(--accent); border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 0 0 3px rgba(0,82,255,0.1); }
+        .custom-select.open .custom-select-arrow { transform: rotate(180deg); color: var(--accent); }
+        .custom-select-arrow { color: var(--muted-fg); font-size: 12px; transition: all 0.2s; }
+        .custom-select-value { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+        
+        .custom-select-options {
+            position: absolute; top: 100%; left: 0; right: 0; background: var(--card);
+            border: 1px solid var(--accent); border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
+            box-shadow: var(--shadow-lg); overflow: hidden; opacity: 0; visibility: hidden;
+            transform: translateY(-5px); transition: all 0.2s; z-index: 50;
+        }
+        .custom-select.open .custom-select-options { opacity: 1; visibility: visible; transform: translateY(0); }
+        .custom-option {
+            padding: 14px 20px; font-size: 15px; color: var(--fg); cursor: pointer; display: flex; align-items: center; gap: 10px;
+            transition: background 0.2s; border-bottom: 1px solid var(--border);
+        }
+        .custom-option:last-child { border-bottom: none; }
+        .custom-option:hover { background: var(--muted); }
+        .custom-option.active { background: rgba(0,82,255,0.05); font-weight: 600; color: var(--accent); }
+        .custom-option.active .dot { background: var(--accent) !important; }
+
+        textarea.editor-ta::placeholder { color: var(--muted-fg); opacity: 0.7; }
+        
+        .recaptcha-wrap { display: flex; justify-content: center; margin-bottom: 32px; }
+
+        .output-wrap { display: none; margin-top: 24px; }
+        .output-wrap.show { display: block; animation: fadeUp 0.4s ease-out; }
+        .output-label { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--accent-sec); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .output-box {
+            background: var(--muted); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; display: flex; align-items: flex-start; gap: 16px;
+        }
+        .output-code { flex: 1; font-family: var(--font-mono); font-size: 13px; color: var(--fg); word-break: break-all; line-height: 1.6; user-select: all; }
+        .btn-copy {
+            flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px; background: var(--border);
+            color: var(--muted-fg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .btn-copy:hover { background: var(--accent); color: #fff; transform: scale(1.05); }
+        .btn-copy.copied { background: #10B981; color: #fff; }
+        .output-note {
+            margin-top: 16px; padding: 12px 16px; background: rgba(56,189,248,0.1); border-left: 3px solid var(--accent-sec);
+            border-radius: 8px; font-size: 13px; color: var(--fg); line-height: 1.6;
+        }
+
+        /* ── FOOTER ── */
+        footer { padding: 40px 6%; text-align: center; font-size: 14px; color: var(--muted-fg); border-top: 1px solid var(--border); background: var(--bg-base); }
+        footer a { color: var(--accent); text-decoration: none; font-weight: 500; }
+        footer a:hover { text-decoration: underline; }
+
+        /* ── MUSIC PLAYER (Minimalist Modern) ── */
+        #musicPlayer {
+            position: fixed; bottom: 24px; right: 24px; z-index: 9999; width: 320px;
+            background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+            box-shadow: var(--shadow-xl); overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.8s both;
+            transition: all 0.3s ease;
+        }
+        #musicPlayer.minimized {
+            width: 56px; height: 56px; border-radius: 28px; cursor: pointer;
+            border: 1px solid var(--border); box-shadow: var(--shadow-md);
+        }
+        #musicPlayer.minimized .player-body, #musicPlayer.minimized .player-banner, #musicPlayer.minimized .player-header { display: none; }
+        #musicPlayer.minimized .player-mini-icon { display: flex !important; position: absolute; inset: 0; }
+        .player-mini-icon { display: none; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; background: var(--card); cursor: pointer; }
+        .player-mini-icon img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .player-mini-icon-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; background: rgba(0,0,0,0.3); backdrop-filter: blur(1px); }
+        
+        .player-banner { width: 100%; height: 90px; position: relative; overflow: hidden; background: var(--muted); }
+        .player-banner-img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9); }
+        .player-header {
+            padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); background: var(--card);
+        }
+        .player-header-title { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--fg); text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; }
+        .player-header-title i { color: var(--accent); }
+        .player-minimize-btn {
+            width: 32px; height: 32px; background: var(--muted); border: none; border-radius: 8px; color: var(--muted-fg); font-size: 12px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .player-minimize-btn:hover { background: var(--border); color: var(--fg); }
+        
+        .player-body { padding: 24px 20px 20px; background: var(--card); }
+        .song-info { text-align: center; margin-bottom: 16px; }
+        .song-title { font-size: 14px; font-weight: 600; color: var(--fg); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-meta { font-size: 12px; color: var(--muted-fg); display: flex; align-items: center; justify-content: center; gap: 6px; }
+        
+        .progress-wrapper { margin-bottom: 16px; }
+        .progress-bar-bg { width: 100%; height: 16px; display: flex; align-items: center; cursor: pointer; }
+        .progress-bar-track { width: 100%; height: 4px; background: var(--muted); border-radius: 2px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-sec)); border-radius: 2px; transition: width 0.3s linear; }
+        .progress-times { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-fg); font-family: var(--font-mono); margin-top: 6px; }
+        
+        .player-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+        .ctrl-btn { background: none; border: none; color: var(--muted-fg); font-size: 16px; cursor: pointer; padding: 10px; transition: color 0.2s; }
+        .ctrl-btn:hover { color: var(--accent); }
+        .ctrl-btn-play {
+            width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-sec));
+            color: #fff; font-size: 18px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow-accent); transition: transform 0.2s;
+        }
+        .ctrl-btn-play:hover { transform: scale(1.05); }
+        
+        .volume-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .volume-icon { font-size: 12px; color: var(--muted-fg); }
+        .volume-slider { flex: 1; -webkit-appearance: none; height: 4px; background: var(--muted); border-radius: 2px; outline: none; cursor: pointer; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+        
+        .playlist-toggle { text-align: center; }
+        .playlist-toggle-btn {
+            background: transparent; border: 1px solid var(--border); border-radius: 99px;
+            color: var(--muted-fg); font-size: 12px; font-weight: 500; padding: 6px 16px;
+            cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .playlist-toggle-btn:hover { border-color: var(--accent); color: var(--fg); }
+        .playlist-panel { display: none; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; max-height: 120px; overflow-y: auto; }
+        .playlist-panel.open { display: block; }
+        .playlist-item {
+            display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+            cursor: pointer; transition: background 0.2s; margin-bottom: 2px;
+        }
+        .playlist-item:hover { background: var(--muted); }
+        .playlist-item.active { background: rgba(0,82,255,0.05); }
+        .playlist-num { font-size: 11px; color: var(--muted-fg); font-family: var(--font-mono); width: 16px; text-align: center; }
+        .playlist-item.active .playlist-num { color: var(--accent); font-weight: 600; }
+        .playlist-item-name { flex: 1; font-size: 13px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .playlist-item.active .playlist-item-name { font-weight: 600; color: var(--accent); }
+        .playlist-playing-icon { font-size: 10px; color: var(--accent); display: none; }
+        .playlist-item.active .playlist-playing-icon { display: block; }
+
+        /* Helpers & Animations */
+        #ytPlayerContainer { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+        .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.3); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .hero { padding: 100px 5% 60px; }
+            .hero-inner { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+            .hero-inner > *:last-child { order: -1; }
+            .hero p { margin-left: auto; margin-right: auto; }
+            .hero-actions { justify-content: center; }
+            .hero-stats { justify-content: center; flex-wrap: wrap; gap: 32px; }
+            .nav-links { display: none; }
+            .steps { grid-template-columns: 1fr; gap: 16px; }
+            .section { padding: 60px 5%; }
+            .card-body, .card-inverted { padding: 24px; }
+            #musicPlayer { width: 280px; bottom: 16px; right: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-scene">
+        <div class="bg-blob blob-1"></div>
+        <div class="bg-blob blob-2"></div>
+        <div class="bg-blob blob-3"></div>
+    </div>
+
+    <header id="mainHeader">
+        <nav class="nav">
+            <a class="logo" href="#">
+                <div class="logo-icon"><i class="fa-solid fa-cloud-bolt"></i></div>
+                <div>
+                    <div class="logo-text">UG<span style="font-weight:400; color:var(--muted-fg)">System</span></div>
+                </div>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#" class="active">Trang Chủ</a></li>
+                <li><a href="#tool">Auto Tool</a></li>
+                <li><a href="#log-extractor">Trích Xuất Log</a></li>
+            </ul>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button class="theme-toggle" onclick="_toggleTheme()" id="themeToggleBtn"><i class="fa-solid fa-moon"></i></button>
+                <a href="#tool" class="nav-cta">Chạy Auto Ngay</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="wrapper">
+
+        <section class="hero">
+            <div class="hero-inner hero-grid">
+                <div>
+                    <div class="section-badge reveal">
+                        <span class="dot"></span>
+                        Auto Buy Ugphone
+                    </div>
+                    <h1 class="hero-title reveal" style="transition-delay: 0.1s;">Khởi tạo Cloud Phone<br>từ <span class="gradient-text">Token JSON</span></h1>
+                    <p class="hero-desc reveal" style="transition-delay: 0.2s;">Giải pháp tự động hoá 100%. Chỉ cần dán mã LocalStorage, hệ thống tự động quét server còn trống và khởi tạo máy UGPhone mới trong tích tắc.</p>
+                    <div class="hero-actions reveal" style="transition-delay: 0.3s;">
+                        <a href="#tool" class="btn btn-primary"><i class="fa-solid fa-bolt"></i> Bắt đầu ngay</a>
+                        <a href="#log-extractor" class="btn btn-ghost">Trích Xuất Log</a>
+                    </div>
+                    <div class="hero-stats reveal" style="transition-delay: 0.4s;">
+                        <div>
+                            <div class="stat-val" id="server-count">0</div>
+                            <div class="stat-label">Devices Active</div>
+                        </div>
+                        <div>
+                            <div class="stat-val" id="user-count">0</div>
+                            <div class="stat-label">Requests / Day</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="phone-wrap reveal">
+                    <div class="phone">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div class="phone-icon"><i class="fa-solid fa-terminal"></i></div>
+                            <div class="phone-code">
+                                <div><span>status:</span> READY</div>
+                                <div><span>server:</span> AUTO</div>
+                                <div><span>region:</span> Germany</div>
+                            </div>
+                            <div class="phone-ring"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="tool" class="section bg-base">
+            <div class="section-center">
+                <div class="section-badge reveal"><span class="dot"></span> Auto Tool</div>
+                <h2 class="section-title reveal">Import Cấu Hình</h2>
+                <p class="section-desc reveal">Dán mã JSON từ LocalStorage để hệ thống xử lý tự động.</p>
+
+                <div class="card reveal">
+                    <div class="card-body">
+                        <div class="steps">
+                            <div class="step">
+                                <div class="step-num">1</div>
+                                <div class="step-text">
+                                    <small>Bước 1</small>
+                                    <strong>Lấy localStorage tại web ugphone.com</strong>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">2</div>
+                                <div class="step-text">
+                                    <small>Bước 2</small>
+                                    <strong>Copy localStorage đã đổi được</strong>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">3</div>
+                                <div class="step-text">
+                                    <small>Bước 3</small>
+                                    <strong>Paste vào đây &amp; chạy auto</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="format-hint">
+                            <span class="format-badge"><i class="fa-solid fa-circle-check"></i> Định dạng cơ bản (Token)</span>
+                            <span class="format-badge"><i class="fa-solid fa-circle-check"></i> Định dạng đầy đủ (MQTT)</span>
+                        </div>
+
+                        <div class="editor">
+                            <div class="editor-bar">
+                                <div class="editor-title"><i class="fa-solid fa-terminal"></i> auto-buy.json</div>
+                                <div class="editor-dots">
+                                    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+                                </div>
+                            </div>
+                            <textarea id="jsonInput" class="editor-ta" placeholder='✅ Hỗ trợ định dạng cơ bản:
+{"ugPhoneLang":"vi","hasWalletGuide":"1","ugBrowserId":"397a28ec...","UGPHONE-ID":"8439bcb6-...","hadAgreePolicy":"true","UGPHONE-Token":"c4d2c114..."}
+
+✅ Hỗ trợ định dạng đầy đủ (có MQTT):
+{"ugPhoneLang":"vi","ugBrowserId":"63ce7142...","UGPHONE-ID":"8ce81945-...","hadAgreePolicy":true,"UGPHONE-Token":"94aa5525...","UGPHONE-MQTT":"{\"client_id\":17647399,...}"}' spellcheck="false"></textarea>
+                        </div>
+
+                        <div class="custom-select-wrapper">
+                            <label class="custom-select-label"><i class="fa-solid fa-globe"></i> Chọn Máy Chủ (Region)</label>
+                            <div class="custom-select" id="regionSelect">
+                                <div class="custom-select-trigger">
+                                    <span class="custom-select-value"><span class="dot" style="background:#10B981;"></span> Germany</span>
+                                    <i class="fa-solid fa-chevron-down custom-select-arrow"></i>
+                                </div>
+                                <div class="custom-select-options">
+                                    <div class="custom-option" data-value="Hong Kong"><span class="dot" style="background:#10B981;"></span> Hong Kong</div>
+                                    <div class="custom-option" data-value="Singapore"><span class="dot" style="background:#10B981;"></span> Singapore</div>
+                                    <div class="custom-option" data-value="Japan"><span class="dot" style="background:#10B981;"></span> Japan</div>
+                                    <div class="custom-option active" data-value="Germany"><span class="dot" style="background:#10B981;"></span> Germany</div>
+                                    <div class="custom-option" data-value="America"><span class="dot" style="background:#10B981;"></span> America</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="recaptcha-wrap">
+                            <div class="g-recaptcha"
+                                 data-sitekey="6LdwhZ8sAAAAAFbTz3gHL_bG7_OJ6rzpuVriITxm"
+                                 data-theme="light"></div>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; height: 56px; font-size: 16px;" id="btnRun" onclick="window._0xAutoExecute()">
+                            <i class="fa-solid fa-rocket"></i>
+                            Khởi chạy cloud
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <section id="log-extractor" class="section">
+            <div class="section-center">
+                <div class="section-badge reveal"><span class="dot" style="background: var(--accent-sec);"></span> Utility</div>
+                <h2 class="section-title reveal">Trích Xuất Console Log</h2>
+                <p class="section-desc reveal">Chuyển đổi LocalStorage JSON thành đoạn lệnh chạy trực tiếp trên Console.</p>
+
+                <div class="card reveal">
+                    <div class="card-body">
+                        <div class="editor">
+                            <div class="editor-bar">
+                                <div class="editor-title"><i class="fa-solid fa-file-import"></i> localstorage.json</div>
+                                <div class="editor-dots">
+                                    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+                                </div>
+                            </div>
+                            <textarea id="logJsonInput" class="editor-ta" placeholder='{
+  "client_id": "16851950",
+  "login_id": "...",
+  "access_token": "...",
+  "UGPHONE-ID": "...",
+  "UGPHONE-Token": "..."
+}' spellcheck="false"></textarea>
+                        </div>
+
+                    <button class="btn btn-primary" style="width: 100%;" onclick="window._0xGenLogSequence()">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        Tạo Code Inject
+                    </button>
+
+                    <div class="output-wrap" id="outputWrapper">
+                        <div class="output-label">
+                            <i class="fa-solid fa-circle-check"></i> Code nhập Local Storage:
+                        </div>
+                        <div class="output-box">
+                            <div class="output-code" id="outputLogCode"></div>
+                            <button class="btn-copy" id="copyLogBtn" onclick="window._0xCopyAction()" title="Copy">
+                                <i class="fa-regular fa-copy" id="copyIcon"></i>
+                            </button>
+                        </div>
+                        <div class="output-note">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            Copy đoạn code trên, mở F12 → Console tại trang UGPhone, dán vào và nhấn Enter, sau đó reload trang.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2026 Ugphone Purchase System · All rights reserved</p>
+            <p style="margin-top:8px;">Powered by <a href="https://hanaminikata.com">Hanami Cloud</a> &nbsp;·&nbsp; Love You ❤️ Anh Thư</p>
+        </footer>
+
+    </div>
+
+    <div id="musicPlayer">
+        <div id="ytPlayerContainer"><div id="ytPlayer"></div></div>
+        <div class="player-mini-icon" onclick="window._musicToggleMinimize()">
+            <img src="https://i.ibb.co/WNgJTHbB/hinh-nen-anime-05.jpg" alt="album">
+            <div class="player-mini-icon-overlay"><i class="fa-solid fa-music"></i></div>
+        </div>
+        <div class="player-banner">
+            <img class="player-banner-img" src="https://i.ibb.co/qFWCC0mK/anh-anime-nu-sexy-10.jpg" alt="banner">
+        </div>
+        <div class="player-header">
+            <div class="player-header-title"><i class="fa-solid fa-music"></i> MUSIC PLAYER</div>
+            <button class="player-minimize-btn" onclick="window._musicToggleMinimize()"><i class="fa-solid fa-minus"></i></button>
+        </div>
+        <div class="player-body">
+            <div class="song-info">
+                <div class="song-title" id="songTitle">Đang tải...</div>
+                <div class="song-meta">
+                    <i class="fa-brands fa-youtube" style="color:#ff0000;font-size:12px;"></i>
+                    <span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--muted-fg);"></span>
+                    <span id="songIndex">1 / 5</span>
+                </div>
+            </div>
+            <div class="progress-wrapper">
+                <div class="progress-bar-bg" id="progressBg">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="progressFill"></div>
+                    </div>
+                </div>
+                <div class="progress-times">
+                    <span id="timeCurrent">0:00</span>
+                    <span id="timeDuration">0:00</span>
+                </div>
+            </div>
+            <div class="player-controls">
+                <button class="ctrl-btn" onclick="window._musicPrev()"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="ctrl-btn-play" id="playPauseBtn" onclick="window._musicTogglePlay()">
+                    <i class="fa-solid fa-play" id="playPauseIcon"></i>
+                </button>
+                <button class="ctrl-btn" onclick="window._musicNext()"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+            <div class="volume-row">
+                <i class="fa-solid fa-volume-low volume-icon"></i>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70" oninput="window._musicSetVolume(this.value)">
+                <i class="fa-solid fa-volume-high volume-icon"></i>
+            </div>
+            <div class="playlist-toggle">
+                <button class="playlist-toggle-btn" onclick="window._musicTogglePlaylist()">
+                    <i class="fa-solid fa-list"></i> Danh sách phát
+                </button>
+            </div>
+            <div class="playlist-panel" id="playlistPanel">
+                <div class="playlist-item active" data-idx="0" onclick="window._musicPlayAt(0)"><span class="playlist-num">1</span><span class="playlist-item-name">Bài nhạc 1</span><i class="fa-solid fa-volume-high playlist-playing-icon"></i></div>
+                <div class="playlist-item" data-idx="1" onclick="window._musicPlayAt(1)"><span class="playlist-num">2</span><span class="playlist-item-name">Bài nhạc 2</span><i class="fa-solid fa-volume-high playlist-playing-icon"></i></div>
+                <div class="playlist-item" data-idx="2" onclick="window._musicPlayAt(2)"><span class="playlist-num">3</span><span class="playlist-item-name">Bài nhạc 3</span><i class="fa-solid fa-volume-high playlist-playing-icon"></i></div>
+                <div class="playlist-item" data-idx="3" onclick="window._musicPlayAt(3)"><span class="playlist-num">4</span><span class="playlist-item-name">Bài nhạc 4</span><i class="fa-solid fa-volume-high playlist-playing-icon"></i></div>
+                <div class="playlist-item" data-idx="4" onclick="window._musicPlayAt(4)"><span class="playlist-num">5</span><span class="playlist-item-name">Bài nhạc 5</span><i class="fa-solid fa-volume-high playlist-playing-icon"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    // ── THEME TOGGLE ──
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if(savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    window._toggleTheme = function() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const newTheme = isDark ? 'light' : 'dark';
+        if(newTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', newTheme);
+        const icon = document.querySelector('#themeToggleBtn i');
+        if (icon) icon.className = newTheme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    };
+    window.addEventListener('DOMContentLoaded', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const icon = document.querySelector('#themeToggleBtn i');
+        if (icon) icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    });
+
+    // ── HEADER SCROLL ──
+    const _hdr = document.getElementById('mainHeader');
+    window.addEventListener('scroll', () => { _hdr.classList.toggle('scrolled', window.scrollY > 40); }, { passive: true });
+
+    // ── SCROLL REVEAL ──
+    const _obs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => _obs.observe(el));
+
+    // ── SMOOTH SCROLL ──
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            const t = document.querySelector(a.getAttribute('href'));
+            if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    // ── COUNTER ──
+    function animateValue(el, start, end, duration) {
+        let ts = null;
+        const step = t => {
+            if (!ts) ts = t;
+            const p = Math.min((t - ts) / duration, 1);
+            el.innerHTML = Math.floor(p * (end - start) + start).toLocaleString();
+            if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+    window.addEventListener('load', () => {
+        animateValue(document.getElementById('server-count'), 0, 1240, 2000);
+        animateValue(document.getElementById('user-count'),  0, 58900, 2500);
+    });
+
+    // ── CORE LOGIC CÓ CHỜ 30 GIÂY ──
+    (function(_w) {
+        const _k = {
+            iMain : ['j','s','o','n','I','n','p','u','t'].join(''),
+            iLog  : ['l','o','g','J','s','o','n','I','n','p','u','t'].join(''),
+            oCode : ['o','u','t','p','u','t','L','o','g','C','o','d','e'].join(''),
+            oWrap : ['o','u','t','p','u','t','W','r','a','p','p','e','r'].join(''),
+        };
+
+        const _msg = [
+            'Cám Ơn Bạn Đã Sử Dụng Dịch Vụ Của',
+            '\u{1F60E}Hanami Cloud',
+            '\u203C\uFE0FĐã nhập localStorage! \u203C\uFE0F',
+            '\uD83D\uDC49Hãy Load Lại Web Và Tận Hưởng Thôi',
+            'Chúc Các Bạn Trải Nghiệm Dịch Vụ Vui Vẻ',
+        ].join('\n');
+
+        const _b1 = atob('KGQ9Pntmb3IodmFyIGsgaW4gZClsb2NhbFN0b3JhZ2Uuc2V0SXRlbShrLHR5cGVvZiBkW2tdPT09Im9iamVjdCI/SlNPTi5zdHJpbmdpZnkoZFtrXSk6ZFtrXSk7Y29uc29sZS5sb2co');
+        const _b2 = atob('KX0pKEpTT04ucGFyc2UoYXRvYigi');
+
+        // --- REGION SELECT LOGIC ---
+        let selectedRegion = 'Germany';
+        const selectWrapper = document.getElementById('regionSelect');
+        if (selectWrapper) {
+            const selectTrigger = selectWrapper.querySelector('.custom-select-trigger');
+            const selectOptions = selectWrapper.querySelectorAll('.custom-option');
+            const selectValue   = selectWrapper.querySelector('.custom-select-value');
+
+            selectTrigger.addEventListener('click', () => { selectWrapper.classList.toggle('open'); });
+
+            selectOptions.forEach(opt => {
+                opt.addEventListener('click', () => {
+                    selectOptions.forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                    selectedRegion = opt.getAttribute('data-value');
+                    selectValue.innerHTML = `<span class="dot" style="background:#10B981;"></span> ${selectedRegion}`;
+                    selectWrapper.classList.remove('open');
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!selectWrapper.contains(e.target)) selectWrapper.classList.remove('open');
+            });
+        }
+
+
+        _w['_0xAutoExecute'] = function() {
+            const rawJson = document.getElementById(_k.iMain).value.trim();
+            if (!rawJson) {
+                return Swal.fire({
+                    icon: 'warning', title: 'Chưa nhập dữ liệu!',
+                    text: 'Vui lòng dán mã LocalStorage JSON vào ô nhập.',
+                    background: 'var(--card)', color: 'var(--fg)', confirmButtonColor: 'var(--accent)'
+                });
+            }
+            const captcha = (typeof grecaptcha !== 'undefined') ? grecaptcha.getResponse() : '';
+            if (!captcha) {
+                return Swal.fire({
+                    icon: 'warning', title: 'Chưa xác minh Captcha!',
+                    text: 'Vui lòng tích vào reCAPTCHA trước khi chạy.',
+                    background: 'var(--card)', color: 'var(--fg)', confirmButtonColor: 'var(--accent)'
+                });
+            }
+            const btnRun = document.getElementById('btnRun');
+            if (btnRun) btnRun.disabled = true;
+            _executeRealBuy(rawJson, captcha);
+        };
+
+        // Hàm thực thi chính sau khi đợi xong 30s
+        async function _executeRealBuy(rawJson, captcha) {
+            let pollInterval = null;
+
+            const _css = `<style>
+                @keyframes _ss{to{transform:rotate(360deg)}}
+                @keyframes _sf{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+                @keyframes _sb{0%{width:0%}100%{width:100%}}
+                ._sr{display:inline-flex;width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-right:10px;}
+                ._sr1{border:2px solid rgba(0,82,255,0.2);border-top-color:#0052FF;animation:_ss 0.75s linear infinite;}
+                ._sr2{border:2px solid rgba(0,82,255,0.2);border-top-color:#0052FF;animation:_ss 0.8s linear infinite;}
+                ._sr3{border:2px solid rgba(0,82,255,0.2);border-top-color:#0052FF;animation:_ss 0.9s linear infinite;}
+                ._sr4{border:2px solid rgba(0,82,255,0.2);border-top-color:#0052FF;animation:_ss 0.7s linear infinite;}
+                ._sr5{border:2px solid rgba(16,185,129,0.2);border-top-color:#10B981;animation:_ss 0.85s linear infinite;}
+                ._sr6{border:2px solid rgba(0,82,255,0.2);border-top-color:#0052FF;animation:_ss 0.75s linear infinite;}
+                ._sc{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(16,185,129,0.15);border:1.5px solid #10B981;font-size:9px;color:#10B981;flex-shrink:0;margin-right:10px;}
+                ._row{display:none;align-items:flex-start;padding:8px 0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;animation:_sf 0.25s ease-out both;border-bottom:1px solid rgba(0,0,0,0.04);}
+                ._row:last-child{border-bottom:none;}
+                ._row._vis{display:flex;}
+                ._rt{flex:1;}
+                ._rl{display:block;font-size:10px;color:#64748B;margin-top:2px;}
+                ._bar{height:2px;background:rgba(0,0,0,0.06);border-radius:1px;margin-top:14px;overflow:hidden;}
+                ._barf{height:100%;border-radius:1px;background:linear-gradient(90deg,#0052FF,#4D7CFF);animation:_sb 18s linear forwards;}
+            </style>`;
+
+            const _html = `${_css}<div style="text-align:left;padding:2px 0;">
+                <div class="_row _vis" id="ss1" style="color:#0052FF;"><div class="_sr _sr1"></div><div class="_rt">Đang tìm các server còn trống máy...<span class="_rl">Kết nối tới hệ thống UGPhone</span></div></div>
+                <div class="_row" id="ss2" style="color:#0052FF;"><div class="_sr _sr2"></div><div class="_rt">Đang quét danh sách server khả dụng...<span class="_rl">Phân tích tải trọng từng node</span></div></div>
+                <div class="_row" id="ss3" style="color:#0052FF;"><div class="_sr _sr3"></div><div class="_rt">Đang xác minh slot trống trên server...<span class="_rl">Kiểm tra vùng ${typeof selectedRegion !== 'undefined' ? selectedRegion : 'Germany'}</span></div></div>
+                <div class="_row" id="ss4" style="color:#0052FF;"><div class="_sr _sr4"></div><div class="_rt">Đang gửi yêu cầu khởi tạo máy...<span class="_rl">Gửi token xác thực tới API</span></div></div>
+                <div class="_row" id="ss5" style="color:#10B981;"><div class="_sr _sr5"></div><div class="_rt" id="ss5t">Đang Tiến Hành Mua Máy...<span class="_rl" id="ss5l">Chờ phản hồi từ hệ thống</span></div></div>
+                <div class="_row" id="ss6" style="color:#0052FF;"><div class="_sr _sr6"></div><div class="_rt">Đang cấp phát tài nguyên cho máy...<span class="_rl">Thiết lập môi trường UGPhone</span></div></div>
+                <div class="_bar"><div class="_barf"></div></div>
+            </div>`;
+
+            Swal.fire({
+                title:'Hệ thống đang xử lý...', html:_html,
+                background:'var(--card)', color:'var(--fg)',
+                showConfirmButton:false, allowOutsideClick:false,
+                didOpen: async () => {
+                    function _show(id, prevId) {
+                        if (prevId) {
+                            const prev = document.getElementById(prevId);
+                            if (prev) {
+                                const ring = prev.querySelector('[class*="_sr"]');
+                                if (ring) { const chk = document.createElement('div'); chk.className='_sc'; chk.innerHTML='✓'; ring.replaceWith(chk); }
+                                prev.style.color = '#34D399';
+                            }
+                        }
+                        const el = document.getElementById(id);
+                        if (el) el.classList.add('_vis');
+                    }
+                    setTimeout(() => _show('ss2','ss1'), 700);
+                    setTimeout(() => _show('ss3','ss2'), 1500);
+                    setTimeout(() => _show('ss4','ss3'), 2400);
+
+                    try {
+                        const res  = await fetch('?action=buy', {
+                            method:'POST', headers:{'Content-Type':'application/json'},
+                            body: JSON.stringify({ rawData:rawJson, captchaToken:captcha, region: (typeof selectedRegion !== 'undefined' ? selectedRegion : 'Germany') })
+                        });
+                        const data = await res.json();
+
+                        if (data.taskId) {
+                            setTimeout(() => {
+                                _show('ss5','ss4');
+                                const t = document.getElementById('ss5t');
+                                if (t) t.innerHTML = `Đang Tiến Hành Mua Máy...<span class="_rl">Task: <b style="color:#FBBF24;">${data.taskId}</b></span>`;
+                            }, 3000);
+                            setTimeout(() => _show('ss6', null), 4500);
+
+                            pollInterval = setInterval(async () => {
+                                try {
+                                    const sRes  = await fetch('?action=status', {
+                                        method:'POST', headers:{'Content-Type':'application/json'},
+                                        body: JSON.stringify({ taskId: data.taskId })
+                                    });
+                                    const sDat  = await sRes.json();
+                                    const status = (sDat.status || '').toLowerCase();
+                                    if (status.includes('complete') || sDat.completed === true) {
+                                        clearInterval(pollInterval); grecaptcha.reset();
+                                        const btnRun = document.getElementById('btnRun'); if (btnRun) btnRun.disabled = false;
+                                        Swal.fire({
+                                            icon:'success', title:'🎉 Đã Mua máy thành công!',
+                                            html:`<div style="margin-top:14px;padding:18px;background:rgba(16,185,129,0.06);border-radius:12px;border:1px solid rgba(16,185,129,0.18);text-align:left;">
+                                                    <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:2.2;">
+                                                        <div style="color:var(--muted-fg);">Task ID: &nbsp;<b style="color:var(--fg);">${data.taskId}</b></div>
+                                                        <div style="color:var(--muted-fg);">Trạng Thái: &nbsp;<b style="color:#10B981;">✅ Đã Mua thành Công và có máy</b></div>
+                                                    </div>
+                                                  </div>
+                                                  <div style="margin-top:14px;padding:12px 16px;background:rgba(0,82,255,0.05);border-radius:10px;border-left:3px solid var(--accent);font-size:13px;color:var(--fg);line-height:1.7;text-align:left;">
+                                                    ⏱️ Máy đã bắt đầu tính giờ sài,<br>xin vui lòng sài máy!
+                                                  </div>`,
+                                            background:'var(--card)', color:'var(--fg)',
+                                            confirmButtonColor:'var(--accent)', confirmButtonText:'✅ Đã hiểu, vào máy ngay!'
+                                        });
+                                    } else if (status.includes('fail') || status.includes('error')) {
+                                        clearInterval(pollInterval); grecaptcha.reset();
+                                        const btnRun = document.getElementById('btnRun'); if (btnRun) btnRun.disabled = false;
+                                        
+                                        // CẢI TIẾN: Lấy tin nhắn từ cả result.message (Meows hay giấu ở đây)
+                                        let errorMsg = (sDat.result && sDat.result.message) || sDat.message || sDat.error || 'Hệ thống Cloud từ chối khởi tạo máy.';
+                                        if (errorMsg.includes('Máy chủ đang bận')) {
+                                            errorMsg = 'Hiện tại tất cả máy đều đã hết hàng, vui lòng quay lại sau vài tiếng';
+                                        }
+                                        Swal.fire({ icon:'error', title:'Thất bại', text: errorMsg, background:'var(--card)', color:'var(--fg)', confirmButtonColor: 'var(--accent)' });
+                                    }
+                                } catch (e) {}
+                            }, 5000);
+
+                        } else if (data.success) {
+                            grecaptcha.reset();
+                            const btnRun = document.getElementById('btnRun'); if (btnRun) btnRun.disabled = false;
+                            Swal.fire({
+                                icon:'success', title:'🎉 Đã Mua máy thành công!',
+                                html:`<div style="margin-top:12px;padding:12px 16px;background:rgba(0,82,255,0.05);border-radius:10px;border-left:3px solid var(--accent);font-size:13px;color:var(--fg);line-height:1.7;text-align:left;">
+                                        ⏱️ Máy đã bắt đầu tính giờ sài,<br>xin vui lòng sài máy!
+                                      </div>`,
+                                background:'var(--card)', color:'var(--fg)',
+                                confirmButtonColor:'var(--accent)', confirmButtonText:'✅ Đã hiểu, vào máy ngay!'
+                            });
+                        } else {
+                            throw new Error(data.message || data.error || 'Hệ thống Cloud từ chối khởi tạo máy.');
+                        }
+                    } catch (e) {
+                        if (pollInterval) clearInterval(pollInterval);
+                        grecaptcha.reset();
+                        const btnRun = document.getElementById('btnRun'); if (btnRun) btnRun.disabled = false;
+                        
+                        let errorMsg = e.message;
+                        if (errorMsg.includes('Máy chủ đang bận')) {
+                            errorMsg = 'Hiện tại tất cả máy đều đã hết hàng, vui lòng quay lại sau vài tiếng';
+                        }
+                        Swal.fire({ icon:'error', title:'Thất bại', text: errorMsg, background:'var(--card)', color:'var(--fg)', confirmButtonColor: 'var(--accent)' });
+                    }
+                }
+            });
+        }
+
+
+        _w['_0xGenLogSequence'] = function() {
+            let raw = document.getElementById(_k.iLog).value.trim();
+            if (!raw) return Swal.fire({
+                icon:'warning', title:'Chưa nhập dữ liệu!',
+                text:'Vui lòng dán mã LocalStorage JSON vào ô nhập.',
+                background:'var(--card)', color:'var(--fg)', confirmButtonColor:'var(--accent)'
+            });
+
+            // --- AUTO-REPAIR V3.2 (JS Version) ---
+            let encoded;
+            try {
+                // Thử parse JSON trực tiếp trước
+                let parsed = JSON.parse(raw);
+                if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
+                
+                // Nếu UGPHONE-MQTT là Object, ta stringify nó thành chuỗi JSON lồng để đồng bộ định dạng chuẩn
+                if (parsed['UGPHONE-MQTT'] && typeof parsed['UGPHONE-MQTT'] === 'object') {
+                    parsed['UGPHONE-MQTT'] = JSON.stringify(parsed['UGPHONE-MQTT']);
+                }
+                encoded = btoa(unescape(encodeURIComponent(JSON.stringify(parsed))));
+            } catch (e) {
+                // Nếu JSON bị lỗi ngoặc kép lồng nhau, tiến hành vá lỗi bằng regex
+                let repairedRaw = raw.replace(/("UGPHONE-MQTT"\s*:\s*")(\{.*?\})("\s*[,}])/gs, (m, p1, p2, p3) => {
+                    let inner = p2.replace(/\\"/g, '"').replace(/"/g, '\\"');
+                    return p1 + inner + p3;
+                });
+                
+                try {
+                    let parsed = JSON.parse(repairedRaw);
+                    if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
+                    if (parsed['UGPHONE-MQTT'] && typeof parsed['UGPHONE-MQTT'] === 'object') {
+                        parsed['UGPHONE-MQTT'] = JSON.stringify(parsed['UGPHONE-MQTT']);
+                    }
+                    encoded = btoa(unescape(encodeURIComponent(JSON.stringify(parsed))));
+                } catch (err) {
+                    // --- FALLBACK TỐI THƯỢNG ---
+                    // Nếu vẫn lỗi, dùng luôn chuỗi đã dọn dẹp để encode
+                    let cleanRaw = raw.replace(/[\r\n\t]+/g, ' ').trim();
+                    encoded = btoa(unescape(encodeURIComponent(cleanRaw)));
+                }
+            }
+
+            const output  = _b1 + JSON.stringify(_msg) + _b2 + encoded + '")))';
+            document.getElementById(_k.oCode).textContent = output;
+            const wrap = document.getElementById(_k.oWrap);
+            wrap.classList.add('show');
+            wrap.scrollIntoView({ behavior:'smooth', block:'center' });
+            document.getElementById('copyLogBtn').classList.remove('copied');
+            document.getElementById('copyIcon').className = 'fa-regular fa-copy';
+        };
+
+        _w['_0xCopyAction'] = function() {
+            const text = document.getElementById(_k.oCode).textContent;
+            const btn  = document.getElementById('copyLogBtn');
+            const icon = document.getElementById('copyIcon');
+            const _done = () => {
+                btn.classList.add('copied');
+                icon.className = 'fa-solid fa-check';
+                setTimeout(() => { btn.classList.remove('copied'); icon.className = 'fa-regular fa-copy'; }, 2500);
+            };
+            navigator.clipboard.writeText(text).then(_done).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+                document.body.removeChild(ta); _done();
+            });
+        };
+    })(window);
+
+    // ── MUSIC PLAYER ──
+    (function() {
+        const _playlist = [
+            { id: ['5','0','0','8','L','m','j','A','q','-','g'].join(''), title: 'Nhạc 1 - Hanami Cloud' },
+            { id: ['v','f','K','i','a','X','K','O','4','4','M'].join(''), title: 'Nhạc 2 - Hanami Cloud' },
+            { id: ['r','i','-','T','F','S','9','7','H','b','w'].join(''), title: 'Nhạc 3 - Hanami Cloud' },
+            { id: ['J','7','e','Y','h','M','6','w','X','P','o'].join(''), title: 'Nhạc 4 - Hanami Cloud' },
+            { id: ['K','T','P','b','3','A','q','U','J','A','s'].join(''), title: 'Nhạc 5 - Hanami Cloud' },
+        ];
+
+        let _ytPlayer=null, _curIdx=0, _isPlaying=false, _isMinimized=false;
+        let _progressTimer=null, _volume=70, _playerReady=false, _pendingPlay=false, _interacted=false;
+
+        const _el = {
+            player:   () => document.getElementById('musicPlayer'),
+            title:    () => document.getElementById('songTitle'),
+            idx:      () => document.getElementById('songIndex'),
+            fill:     () => document.getElementById('progressFill'),
+            timeCur:  () => document.getElementById('timeCurrent'),
+            timeDur:  () => document.getElementById('timeDuration'),
+            playIcon: () => document.getElementById('playPauseIcon'),
+        };
+
+        function _fmtTime(s) { if(!s||isNaN(s))return'0:00'; return Math.floor(s/60)+':'+(Math.floor(s%60)<10?'0':'')+Math.floor(s%60); }
+        function _updateUI(playing) {
+            _isPlaying = playing;
+            const ic = _el.playIcon(); if(ic) ic.className = playing?'fa-solid fa-pause':'fa-solid fa-play';
+            const p  = _el.player();  if(p) playing?p.classList.remove('paused'):p.classList.add('paused');
+        }
+        function _updateSongInfo() {
+            const s=_playlist[_curIdx];
+            const t=_el.title(); if(t) t.textContent=s.title;
+            const i=_el.idx();   if(i) i.textContent=(_curIdx+1)+' / '+_playlist.length;
+            document.querySelectorAll('.playlist-item').forEach((el,ix)=>el.classList.toggle('active',ix===_curIdx));
+        }
+        function _startPT() {
+            if(_progressTimer) clearInterval(_progressTimer);
+            _progressTimer = setInterval(()=>{
+                if(!_ytPlayer||!_playerReady) return;
+                try {
+                    const c=_ytPlayer.getCurrentTime()||0, d=_ytPlayer.getDuration()||0, p=d>0?(c/d*100):0;
+                    const f=_el.fill(); if(f) f.style.width=p+'%';
+                    const tc=_el.timeCur(); if(tc) tc.textContent=_fmtTime(c);
+                    const td=_el.timeDur(); if(td) td.textContent=_fmtTime(d);
+                } catch(e){}
+            }, 500);
+        }
+        function _stopPT() { if(_progressTimer){clearInterval(_progressTimer);_progressTimer=null;} }
+        function _doPlay() {
+            if(!_ytPlayer||!_playerReady){_pendingPlay=true;return;}
+            try{_ytPlayer.unMute();_ytPlayer.setVolume(_volume);_ytPlayer.playVideo();}catch(e){}
+        }
+        function _loadSong(idx, auto) {
+            _curIdx=idx; _updateSongInfo();
+            if(!_ytPlayer||!_playerReady) return;
+            try{ auto?_ytPlayer.loadVideoById({videoId:_playlist[idx].id}):_ytPlayer.cueVideoById({videoId:_playlist[idx].id}); }catch(e){}
+        }
+        function _setupFirstInteraction() {
+            const _s = function(){ if(_interacted)return; _interacted=true; ['click','touchend','keydown'].forEach(ev=>document.removeEventListener(ev,_s,true)); _doPlay(); };
+            ['click','touchend','keydown'].forEach(ev=>document.addEventListener(ev,_s,true));
+        }
+        _setupFirstInteraction();
+
+        function _setupProgressBar() {
+            const bg = document.getElementById('progressBg'); if(!bg) return;
+            const _pct = cx => { const r=bg.getBoundingClientRect(); return Math.min(1,Math.max(0,(cx-r.left)/r.width)); };
+            const _seek = p => { if(!_ytPlayer||!_playerReady) return; try{const d=_ytPlayer.getDuration();if(d)_ytPlayer.seekTo(p*d,true);}catch(e){} };
+            bg.addEventListener('click', e => _seek(_pct(e.clientX)));
+            bg.addEventListener('touchstart', e => e.preventDefault(), {passive:false});
+            bg.addEventListener('touchend',   e => _seek(_pct(e.changedTouches[0].clientX)), {passive:true});
+        }
+
+        window.onYouTubeIframeAPIReady = function() {
+            try{if(_ytPlayer&&_ytPlayer.destroy)_ytPlayer.destroy();}catch(e){}
+            _ytPlayer=null; _playerReady=false;
+            _ytPlayer = new YT.Player('ytPlayer', {
+                width:'2', height:'2', videoId:_playlist[0].id,
+                playerVars:{autoplay:0,mute:0,controls:0,disablekb:1,fs:0,iv_load_policy:3,modestbranding:1,rel:0,showinfo:0,playsinline:1,enablejsapi:1,origin:window.location.origin},
+                events:{
+                    onReady: e => {
+                        _playerReady=true; _updateSongInfo(); e.target.setVolume(_volume);
+                        if(_pendingPlay||_interacted){_pendingPlay=false;try{e.target.unMute();e.target.setVolume(_volume);e.target.playVideo();}catch(err){}}
+                    },
+                    onStateChange: e => {
+                        const S=YT.PlayerState;
+                        if(e.data===S.PLAYING){ _updateUI(true); _startPT(); try{const i=_ytPlayer.getVideoData();if(i&&i.title){_playlist[_curIdx].title=i.title;_updateSongInfo();}}catch(er){} }
+                        else if(e.data===S.PAUSED){ _updateUI(false); _stopPT(); }
+                        else if(e.data===S.ENDED){ _updateUI(false); _stopPT(); _loadSong((_curIdx+1)%_playlist.length,true); }
+                    },
+                    onError: () => setTimeout(()=>_loadSong((_curIdx+1)%_playlist.length,true),1500)
+                }
+            });
+        };
+        (function(){
+            if(window.YT&&window.YT.Player){window.onYouTubeIframeAPIReady();return;}
+            const t=document.createElement('script'); t.src='https://www.youtube.com/iframe_api'; t.async=true; document.head.appendChild(t);
+        })();
+
+        window._musicTogglePlay  = ()=>{ if(!_ytPlayer||!_playerReady)return; try{const s=_ytPlayer.getPlayerState();s===YT.PlayerState.PLAYING?_ytPlayer.pauseVideo():_ytPlayer.playVideo();}catch(e){} };
+        window._musicNext        = ()=>_loadSong((_curIdx+1)%_playlist.length,true);
+        window._musicPrev        = ()=>_loadSong((_curIdx-1+_playlist.length)%_playlist.length,true);
+        window._musicPlayAt      = idx=>_loadSong(idx,true);
+        window._musicSetVolume   = val=>{ _volume=parseInt(val); if(_ytPlayer&&_playerReady){try{_ytPlayer.setVolume(_volume);}catch(e){}} };
+        window._musicToggleMinimize = ()=>{ const p=_el.player(); if(!p)return; _isMinimized=!_isMinimized; p.classList.toggle('minimized',_isMinimized); };
+        window._musicTogglePlaylist = ()=>{ const p=document.getElementById('playlistPanel'); if(p) p.classList.toggle('open'); };
+
+        _updateSongInfo();
+        const p=_el.player(); if(p) p.classList.add('paused');
+        
+        // ── LOAD SERVER STATUSES FROM HANAMI API ──
+        async function _loadServerStatuses() {
+            try {
+                const res = await fetch('?action=check_servers');
+                const data = await res.json();
+                if (data.code === 0 && data.data) {
+                    const statuses = data.data; // e.g. {"America":true, "Germany":true, "Singapore":false, "Hong Kong":false, "Japan":false}
+                    document.querySelectorAll('.custom-option').forEach(opt => {
+                        const val = opt.getAttribute('data-value');
+                        const dot = opt.querySelector('.dot');
+                        if (statuses[val] === true) {
+                            if (dot) dot.style.background = '#10B981';
+                            opt.innerHTML = `<span class="dot" style="background:#10B981;"></span> ${val} <span style="font-size:11px;color:#10B981;margin-left:auto;">● Sẵn sàng</span>`;
+                        } else if (statuses[val] === false) {
+                            if (dot) dot.style.background = '#EF4444';
+                            opt.innerHTML = `<span class="dot" style="background:#EF4444;"></span> ${val} <span style="font-size:11px;color:#EF4444;margin-left:auto;">● Hết hàng</span>`;
+                        }
+                    });
+                    
+                    const activeOpt = document.querySelector('.custom-option.active');
+                    if (activeOpt) {
+                        const val = activeOpt.getAttribute('data-value');
+                        const triggerValue = document.querySelector('.custom-select-value');
+                        if (triggerValue) {
+                            const isOnline = statuses[val];
+                            triggerValue.innerHTML = `<span class="dot" style="background:${isOnline ? '#10B981' : '#EF4444'};"></span> ${val}`;
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+        
+        const initAll = () => {
+            _setupProgressBar();
+            _loadServerStatuses();
+        };
+        document.readyState==='loading'?document.addEventListener('DOMContentLoaded',initAll):initAll();
+    })();
+    </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"2115381d2cd04ba4a563e39258944e1a","r":1}' crossorigin="anonymous"></script>
+</body>
+</html>
