@@ -1741,12 +1741,11 @@ spawn(function()
         end)
     end
 end)
-fast attack
-/////////////////
+-- Fast Attack
+-- /////////////////
 pcall(function()
-    loadstring(game:HttpGet'https://raw.githubusercontent.com/Dev-AnhTuansitink/Module/refs/heads/main/EzFastAttack.lua')()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Dev-AnhTuansitink/Module/refs/heads/main/EzFastAttack.lua"))()
 end)
-
 
 Tabs.Main:AddSection("Farming")
 
@@ -3973,7 +3972,6 @@ Name = "Fast Attack",
 Description = "", 
 Default = true,
 Callback = function(Value)
-  _G.Seriality = Value
 end})
 Bringmob = Tabs.Settings:AddToggle({
 Name = "Bring Mobs", 
