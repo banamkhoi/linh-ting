@@ -3,7 +3,7 @@ local function NotificacaoNEVOHub(titulo, mensagem)
         local TweenService = (Services and Services.TweenService) or game:GetService("TweenService")
         local CoreGui = (Services and Services.CoreGui) or game:GetService("CoreGui")
         local RunService = (Services and Services.RunService) or game:GetService("RunService")
-        local LogoID = " https://i.ibb.co/mrFVnTp2/Chat-GPT-Image-19-45-10-2-thg-9-2026.png"
+        local LogoID = "rbxthumb://type=Asset&id=110625942841371&w=150&h=150"
         local displayDuration = 5
         local countdownSpeed = 1.2
         local realDuration = displayDuration / countdownSpeed
@@ -1476,7 +1476,7 @@ local Window = redzlib:MakeWindow({
 })
 
 Window:AddMinimizeButton({
-    Button = { Image = " https://i.ibb.co/mrFVnTp2/Chat-GPT-Image-19-45-10-2-thg-9-2026.png", BackgroundTransparency = 0 },
+    Button = { Image = "rbxthumb://type=Asset&id=110625942841371&w=150&h=150", BackgroundTransparency = 0 },
     Corner = { CornerRadius = UDim.new(0, 5) },
 })
 
